@@ -40,7 +40,7 @@ public class RegisteredClientConfig {
 
                 // Durées des tokens
                 .tokenSettings(TokenSettings.builder()
-                        .accessTokenTimeToLive(Duration.ofMinutes(15))
+                        .accessTokenTimeToLive(Duration.ofMinutes(1))
                         .refreshTokenTimeToLive(Duration.ofDays(7))
                         .reuseRefreshTokens(false) // on change RT à chaque refresh
                         .build())
