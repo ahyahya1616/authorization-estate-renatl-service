@@ -18,4 +18,3 @@ management:
       enabled: true
   security:
     enabled: false
->>>>>>> 10dc45547cf539e9705d80cad5a11f837bd14011
