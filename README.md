@@ -21,6 +21,37 @@ The service is designed to simplify the validation logic for other services:
 - **Simplified Verification**: Resource servers can easily fetch the public keys from the JWKS URI to validate JWT signatures.
 - **Safe Exposure**: Only the necessary endpoints are exposed publicly, while sensitive configuration and private keys are protected.
 
+## 🏗️ Architecture & Token Flow (Zero-Trust Model)
+
+This service is the heart of a **Zero-Trust Security Model**. Instead of microservices trusting the gateway, each service independently verifies the identity of the requester.
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 User / MetaMask
+    participant Gateway as 🚪 API Gateway
+    participant Auth as 🔐 Auth Service (SAS)
+    participant Service as 🏠 Property/Rental Services
+
+    User->>Auth: 1. Request Token (grant_type=metamask)
+    Auth-->>User: 2. Return JWT (Access + Refresh)
+
+    User->>Gateway: 3. Call API with JWT
+    Gateway->>Gateway: 4. Route Request
+    Gateway->>Service: 5. Forward Request + JWT
+
+    Note over Service, Auth: Zero-Trust Verification
+    Service->>Auth: 6. Fetch Public Keys (/oauth2/jwks)
+    Auth-->>Service: 7. Return JWKS
+    Service->>Service: 8. Validate JWT Signature & Claims
+    Service-->>User: 9. Return Protected Resource
+```
+
+### Key Workflow Steps:
+1.  **Authentication**: The user authenticates once with the Auth Service.
+2.  **Token Forwarding**: The API Gateway acts as a clean entry point, forwarding the JWT to downstream services.
+3.  **Independent Verification**: Downstream services (`property-service`, `rental-agreement-service`, etc.) do not rely on the Gateway's word. They fetch public keys from the **JWKS** endpoint to cryptographically verify the token themselves.
+4.  **Security**: If the Auth Service rotates keys (using the dynamic key management described above), microservices automatically fetch the new keys, ensuring seamless rotation without downtime.
+
 ## ⚙️ Configuration Management
 
 The service follows a centralized configuration pattern to ensure consistency across environments.
