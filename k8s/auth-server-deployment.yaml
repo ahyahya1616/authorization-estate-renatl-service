@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-server
+  namespace: dev
+  labels:
+    app: auth-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-server
+  template:
+    metadata:
+      labels:
+        app: auth-server
+    spec:
+      containers:
+        - name: auth-server
+          image: auth-service:1.0.0
+          ports:
+            - containerPort: 9000
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "dev"
+            - name: CONFIG_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-server-config
+                  key: CONFIG_SERVER_URL
+            - name: USER_MANAGEMENT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-server-config
+                  key: USER_MANAGEMENT_SERVICE_URL
+            - name: JWT_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-server-config
+                  key: JWT_ISSUER
