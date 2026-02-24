@@ -1,14 +1,42 @@
+# ----------------------------
+# Build stage
+# ----------------------------
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+
+# Définir le répertoire de travail
+WORKDIR /app
+
+# Copier uniquement le pom.xml pour utiliser le cache Docker
+COPY pom.xml .
+
+# Télécharger toutes les dépendances Maven (cache efficace)
+RUN mvn -B dependency:go-offline
+
+# Copier le code source
+COPY src ./src
+
+# Compiler le projet et générer le jar (skip tests pour accélérer CI)
+RUN mvn clean package -DskipTests
+
+# ----------------------------
+# Runtime stage
+# ----------------------------
 FROM eclipse-temurin:17-jre-alpine
 
-LABEL maintainer="yassinekamouss"
+# Créer un utilisateur non-root pour la sécurité
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-VOLUME /tmp
+# Définir le répertoire de travail
+WORKDIR /app
 
-ARG JAR_FILE=target/*.jar
+# Copier le jar depuis le build stage
+COPY --from=build /app/target/*.jar app.jar
 
-COPY ${JAR_FILE} app.jar
+# Passer à l’utilisateur non-root
+USER appuser
 
-# Configuration par défaut
+# Variable pour options JAVA
 ENV JAVA_OPTS=""
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app.jar"]
+# Lancer l’application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

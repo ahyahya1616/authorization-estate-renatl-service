@@ -1,7 +1,8 @@
-@Library('jenkins-shared-library') _
+@Library('estate-rental-shared-library') _
 
-standardBackendPipeline(
-    appName: 'authorization-service',
-    registry: 'yassinekamouss',
-     sonarProjectKey: 'auth-serverice'
+springBootKindPipeline(
+        serviceName: 'auth-server',
+        imageName: 'auth-server',
+        jarName: 'auth-server.jar',
+        port: '8880'
 )
